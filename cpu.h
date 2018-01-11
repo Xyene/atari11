@@ -59,7 +59,7 @@ private:
     uint32_t cycle;
 
     static opcode_handler opcode_handlers[256];
-    static std::string opcode_names[256];
+    static const char* opcode_names[256];
     static opcode_def opcode_defs[256];
 
 public:
@@ -219,7 +219,7 @@ private:
 
 class register_opcode_ {
 public:
-    register_opcode_(const std::string &name, opcode_handler handler, std::initializer_list<opcode_def> ops) {
+    register_opcode_(const char *name, opcode_handler handler, std::initializer_list<opcode_def> ops) {
         for (auto op : ops) {
             cpu::opcode_handlers[op.opcode] = handler;
             cpu::opcode_names[op.opcode] = name;
