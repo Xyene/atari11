@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include <functional>
 #include <iostream>
 #include <string>
 
@@ -17,6 +18,11 @@
 class cpu;
 
 typedef void (cpu::* opcode_handler)();
+
+typedef std::function<void(uint16_t, uint8_t)> mem_write_handler;
+
+typedef std::function<uint8_t (uint16_t)> mem_read_handler;
+
 
 enum address_mode {
     None = 0x00,
@@ -41,9 +47,9 @@ struct opcode_def {
 
     inline address_mode get_address_mode() { return (address_mode)(mode & (RMW - 1)); };
 
-    inline bool is_rmw() { return (bool)(mode & RMW); }
+    inline bool is_rmw() { return (mode & RMW) > 0; }
 
-    inline bool has_extra_page_boundary_cycle() { return (bool)(mode & PageBoundary); }
+    inline bool has_extra_page_boundary_cycle() { return (mode & PageBoundary) > 0; }
 };
 
 class cpu {
@@ -61,11 +67,23 @@ private:
     static opcode_handler opcode_handlers[256];
     static const char* opcode_names[256];
     static opcode_def opcode_defs[256];
+    static mem_write_handler write_handlers[8192];
+    static mem_read_handler read_handlers[8192];
 
 public:
+    cpu();
+
     void step();
 
     void reset();
+
+    void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
+        for (int i = start; i < end; i++) write_handlers[i] = handler;
+    }
+
+    void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
+        for (int i = start; i < end; i++) read_handlers[i] = handler;
+    }
 
 #define OPCODE(x) void op_##x()
 

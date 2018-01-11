@@ -6,6 +6,10 @@ const char *cpu::opcode_names[256];
 
 opcode_def cpu::opcode_defs[256];
 
+mem_write_handler cpu::write_handlers[8192];
+
+mem_read_handler cpu::read_handlers[8192];
+
 void cpu::step() {
     (this->*opcode_handlers[0x20])();
 }
@@ -23,19 +27,20 @@ void cpu::operand(uint8_t val) {
 }
 
 uint8_t cpu::read8(uint16_t addr) const {
-    return 0;
+    return read_handlers[addr](addr);
 }
 
 uint16_t cpu::read16(uint16_t addr) const {
-    return 0;
+    return read_handlers[addr](addr) | (read_handlers[addr + 1](addr + 1) << 8);
 }
 
 void cpu::write8(uint16_t addr, uint8_t val) {
-
+    write_handlers[addr](addr, val);
 }
 
 void cpu::write16(uint16_t addr, uint16_t val) {
-
+    write_handlers[addr](addr, val & 0xFF);
+    write_handlers[addr](addr + 1, (val >> 8) & 0xFF);
 }
 
 void cpu::set_flags(uint8_t val) {
@@ -453,6 +458,15 @@ OPCODE(DEC, { .opcode = 0xC6, .cycles = 5, .mode = ZeroPage | RMW },
     auto D = operand() - 1;
     set_flags(D);
     operand(D);
+}
+
+cpu::cpu() {
+    map_write_handler(0, 0x2000, [this](uint16_t addr, uint8_t val) {
+        std::cout << addr << std::endl;
+    });
+    map_read_handler(0, 0x2000, [this](uint16_t addr) -> uint8_t {
+        return 0;
+    });
 }
 
 #undef FLAG_NEGATIVE
