@@ -38,6 +38,12 @@ struct opcode_def {
     uint8_t opcode;
     uint8_t cycles;
     int mode;
+
+    inline address_mode get_address_mode() { return (address_mode)(mode & (RMW - 1)); };
+
+    inline bool is_rmw() { return (bool)(mode & RMW); }
+
+    inline bool has_extra_page_boundary_cycle() { return (bool)(mode & PageBoundary); }
 };
 
 class cpu {
@@ -188,9 +194,9 @@ private:
 
     void write16(uint16_t addr, uint16_t val);
 
-    void set_flags(uint8_t val);
+    inline void set_flags(uint8_t val);
 
-    void set_flag_if(uint8_t mask, bool cond);
+    inline void set_flag_if(uint8_t mask, bool cond);
 
     void push16(uint16_t val);
 
@@ -206,9 +212,9 @@ private:
 
     int8_t nexts8();
 
-    void branch_if(bool cond);
+    inline void branch_if(bool cond);
 
-    void compare(uint8_t val);
+    inline void compare(uint8_t val);
 };
 
 class register_opcode_ {
@@ -219,7 +225,7 @@ public:
             cpu::opcode_names[op.opcode] = name;
             cpu::opcode_defs[op.opcode] = op;
             std::cout << (int) op.opcode << " (" << name << "[" << "mode=" << op.mode << ", rmw="
-                      << ((op.mode & RMW) > 0) << "])" << std::endl;
+                      << op.is_rmw() << ", page_cycle=" << op.has_extra_page_boundary_cycle() << "])" << std::endl;
         }
     }
 };

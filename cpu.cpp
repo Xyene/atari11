@@ -1,5 +1,3 @@
-#pragma GCC diagnostic ignored "-Wconversion"
-
 #include "cpu.h"
 
 opcode_handler cpu::opcode_handlers[256];
@@ -41,11 +39,13 @@ void cpu::write16(uint16_t addr, uint16_t val) {
 }
 
 void cpu::set_flags(uint8_t val) {
-
+    set_flag_if(ZERO_BIT, !val);
+    set_flag_if(NEGATIVE_BIT, val < 0);
 }
 
 void cpu::set_flag_if(uint8_t mask, bool cond) {
-
+    if (cond) P |= mask; else P &= ~mask;
+    // P = (P & ~mask) | (-cond & mask);
 }
 
 void cpu::push16(uint16_t val) {
@@ -118,7 +118,7 @@ OPCODE(INX,
 }
 
 OPCODE(DEX,
-       (opcode_def) {.opcode = 0xCA, .cycles = 2, .mode = RMW}
+       {.opcode = 0xCA, .cycles = 2, .mode = RMW}
 ) {
     set_flags(X--);
 }
