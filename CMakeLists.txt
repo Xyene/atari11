@@ -1,0 +1,9 @@
+cmake_minimum_required(VERSION 3.9)
+project(2600)
+
+set(CMAKE_CXX_STANDARD 14)
+
+SET(GCC_COVERAGE_COMPILE_FLAGS "-fwrapv")
+
+add_executable(2600
+        cpu.cpp cpu.h)
