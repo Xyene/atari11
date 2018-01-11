@@ -66,7 +66,7 @@ uint8_t cpu::next8() { return 0; }
 
 int8_t cpu::nexts8() { return 0; }
 
-#define OPCODE(x, ...) _register_opcode opcode_##x##_def(#x, &cpu::op_##x, {__VA_ARGS__}); \
+#define OPCODE(x, ...) register_opcode_ opcode_##x##_def(#x, &cpu::op_##x, {__VA_ARGS__}); \
                        void cpu::op_##x()
 
 #define FLAG_NEGATIVE       (P & NEGATIVE_BIT)
@@ -118,7 +118,7 @@ OPCODE(INX,
 }
 
 OPCODE(DEX,
-       (opcode_def) {.opcode = 0xCA, .cycles = 2, .rmw = true}
+       (opcode_def) {.opcode = 0xCA, .cycles = 2, .mode = RMW}
 ) {
     set_flags(X--);
 }
@@ -136,13 +136,13 @@ OPCODE(TYA,
 }
 
 OPCODE(TAX,
-       { .opcode = 0xA8, .cycles = 2, .rmw = true }
+       { .opcode = 0xA8, .cycles = 2, .mode = RMW }
 ) {
     set_flags(A = X);
 }
 
 OPCODE(TXA,
-       { .opcode = 0x8A, .cycles = 2, .rmw = true }
+       { .opcode = 0x8A, .cycles = 2, .mode = RMW }
 ) {
     set_flags(X = Y);
 }
@@ -154,7 +154,7 @@ OPCODE(TSX,
 }
 
 OPCODE(TXS,
-       { .opcode = 0x9A, .cycles = 2, .rmw = true }
+       { .opcode = 0x9A, .cycles = 2, .mode = RMW }
 ) {
     set_flags(SP = X);
 }
@@ -184,8 +184,8 @@ OPCODE(PHA,
 }
 
 OPCODE(BIT,
-       { .opcode = 0x24, .mode = Absolute, .cycles = 3 },
-       { .opcode = 0x2C, .mode = ZeroPage, .cycles = 4 }
+       { .opcode = 0x24, .cycles = 3, .mode = Absolute },
+       { .opcode = 0x2C, .cycles = 4, .mode = ZeroPage }
 ) {
     uint8_t val = operand();
     set_flag_if(OVERFLOW_BIT, val & 0x40);
@@ -250,29 +250,29 @@ OPCODE(BMI,
 }
 
 OPCODE(STA,
-       { .opcode = 0x81, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0x91, .mode = IndirectY, .cycles = 6 },
-       { .opcode = 0x95, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0x99, .mode = AbsoluteY, .cycles = 5 },
-       { .opcode = 0x9D, .mode = AbsoluteX, .cycles = 5 },
-       { .opcode = 0x85, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x8D, .mode = Absolute, .cycles = 4 }
+       { .opcode = 0x81, .cycles = 6, .mode = IndirectX, },
+       { .opcode = 0x91, .cycles = 6, .mode = IndirectY, },
+       { .opcode = 0x95, .cycles = 4, .mode = ZeroPageX, },
+       { .opcode = 0x99, .cycles = 5, .mode = AbsoluteY, },
+       { .opcode = 0x9D, .cycles = 5, .mode = AbsoluteX, },
+       { .opcode = 0x85, .cycles = 3, .mode = ZeroPage, },
+       { .opcode = 0x8D, .cycles = 4, .mode = Absolute, }
 ) {
     operand(A);
 }
 
 OPCODE(STX,
-       { .opcode = 0x96, .mode = ZeroPageY, .cycles = 4 },
-       { .opcode = 0x86, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x8E, .mode = Absolute, .cycles = 4 }
+       { .opcode = 0x96, .cycles = 4, .mode = ZeroPageY },
+       { .opcode = 0x86, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0x8E, .cycles = 4, .mode = Absolute }
 ) {
     operand(X);
 }
 
 OPCODE(STY,
-       { .opcode = 0x94, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0x84, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x8C, .mode = Absolute, .cycles = 4 }
+       { .opcode = 0x94, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0x84, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0x8C, .cycles = 4, .mode = Absolute }
 ) {
     operand(Y);
 }
@@ -326,99 +326,99 @@ OPCODE(NOP,
 }
 
 OPCODE(LDA,
-       { .opcode = 0xA1, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0xA5, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0xA9, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0xAD, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0xB1, .mode = IndirectY, .cycles = 5, .page_boundary = true },
-       { .opcode = 0xB5, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0xB9, .mode = AbsoluteY, .cycles = 4, .page_boundary = true },
-       { .opcode = 0xBD, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0xA1, .cycles = 6, .mode = IndirectX },
+       { .opcode = 0xA5, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0xA9, .cycles = 2, .mode = Immediate },
+       { .opcode = 0xAD, .cycles = 4, .mode = Absolute },
+       { .opcode = 0xB1, .cycles = 5, .mode = IndirectY | PageBoundary },
+       { .opcode = 0xB5, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0xB9, .cycles = 4, .mode = AbsoluteY | PageBoundary },
+       { .opcode = 0xBD, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) {
     set_flags(A = operand());
 }
 
 OPCODE(LDY,
-       { .opcode = 0xA0, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0xA4, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0xAC, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0xB4, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0xBC, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0xA0, .cycles = 2, .mode = Immediate },
+       { .opcode = 0xA4, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0xAC, .cycles = 4, .mode = Absolute },
+       { .opcode = 0xB4, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0xBC, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) {
     set_flags(Y = operand());
 }
 
 OPCODE(LDX,
-       { .opcode = 0xA2, .mode = Immediate, .cycles = 2, .rmw = true },
-       { .opcode = 0xA6, .mode = ZeroPage, .cycles = 3, .rmw = true },
-       { .opcode = 0xAE, .mode = Absolute, .cycles = 4, .rmw = true },
-       { .opcode = 0xB6, .mode = ZeroPageY, .cycles = 4, .rmw = true },
-       { .opcode = 0xBE, .mode = AbsoluteY, .cycles = 4, .page_boundary = true, .rmw = true }
+       { .opcode = 0xA2, .cycles = 2, .mode = Immediate | RMW },
+       { .opcode = 0xA6, .cycles = 3, .mode = ZeroPage | RMW },
+       { .opcode = 0xAE, .cycles = 4, .mode = Absolute | RMW },
+       { .opcode = 0xB6, .cycles = 4, .mode = ZeroPageY | RMW },
+       { .opcode = 0xBE, .cycles = 4, .mode = AbsoluteY | RMW | PageBoundary }
 ) {
     set_flags(X = operand());
 }
 
 OPCODE(ORA,
-       { .opcode = 0x01, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0x05, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x09, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0x0D, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0x11, .mode = IndirectY, .cycles = 5, .page_boundary = true },
-       { .opcode = 0x15, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0x19, .mode = AbsoluteY, .cycles = 4, .page_boundary = true },
-       { .opcode = 0x1D, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0x01, .cycles = 6, .mode = IndirectX },
+       { .opcode = 0x05, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0x09, .cycles = 2, .mode = Immediate },
+       { .opcode = 0x0D, .cycles = 4, .mode = Absolute },
+       { .opcode = 0x11, .cycles = 5, .mode = IndirectY | PageBoundary },
+       { .opcode = 0x15, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0x19, .cycles = 4, .mode = AbsoluteY | PageBoundary },
+       { .opcode = 0x1D, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) {
     set_flags(A |= operand());
 }
 
 OPCODE(AND,
-       { .opcode = 0x21, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0x25, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x29, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0x2D, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0x31, .mode = IndirectY, .cycles = 5, .page_boundary = true },
-       { .opcode = 0x35, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0x39, .mode = AbsoluteY, .cycles = 4, .page_boundary = true },
-       { .opcode = 0x3D, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0x21, .cycles = 6, .mode = IndirectX },
+       { .opcode = 0x25, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0x29, .cycles = 2, .mode = Immediate },
+       { .opcode = 0x2D, .cycles = 4, .mode = Absolute },
+       { .opcode = 0x31, .cycles = 5, .mode = IndirectY | PageBoundary },
+       { .opcode = 0x35, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0x39, .cycles = 4, .mode = AbsoluteY | PageBoundary },
+       { .opcode = 0x3D, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) {
     set_flags(A &= operand());
 }
 
 OPCODE(EOR,
-       { .opcode = 0x41, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0x45, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x49, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0x4D, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0x51, .mode = IndirectY, .cycles = 5, .page_boundary = true },
-       { .opcode = 0x55, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0x59, .mode = AbsoluteY, .cycles = 4, .page_boundary = true },
-       { .opcode = 0x5D, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0x41, .cycles = 6, .mode = IndirectX },
+       { .opcode = 0x45, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0x49, .cycles = 2, .mode = Immediate },
+       { .opcode = 0x4D, .cycles = 4, .mode = Absolute },
+       { .opcode = 0x51, .cycles = 5, .mode = IndirectY | PageBoundary },
+       { .opcode = 0x55, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0x59, .cycles = 4, .mode = AbsoluteY | PageBoundary },
+       { .opcode = 0x5D, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) {
     set_flags(A ^= operand());
 }
 
 OPCODE(SBC,
-       { .opcode = 0xE1, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0xE5, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x69, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0xE9, .mode = Immediate, .cycles = 2 }, // Official duplicate of $69
-       { .opcode = 0xEB, .mode = Immediate, .cycles = 2 }, // Unofficial duplicate of $69
-       { .opcode = 0xED, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0xF1, .mode = IndirectY, .cycles = 5, .page_boundary = true },
-       { .opcode = 0xF5, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0xF9, .mode = AbsoluteY, .cycles = 4, .page_boundary = true },
-       { .opcode = 0xFD, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0xE1, .cycles = 6, .mode = IndirectX },
+       { .opcode = 0xE5, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0x69, .cycles = 2, .mode = Immediate },
+       { .opcode = 0xE9, .cycles = 2, .mode = Immediate }, // Official duplicate of $69
+       { .opcode = 0xEB, .cycles = 2, .mode = Immediate }, // Unofficial duplicate of $69
+       { .opcode = 0xED, .cycles = 4, .mode = Absolute },
+       { .opcode = 0xF1, .cycles = 5, .mode = IndirectY | PageBoundary },
+       { .opcode = 0xF5, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0xF9, .cycles = 4, .mode = AbsoluteY | PageBoundary },
+       { .opcode = 0xFD, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) { /* TODO */ }
 
 OPCODE(ADC,
-       { .opcode = 0x61, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0x65, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0x69, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0x6D, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0x71, .mode = IndirectY, .cycles = 5, .page_boundary = true },
-       { .opcode = 0x75, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0x79, .mode = AbsoluteY, .cycles = 4, .page_boundary = true },
-       { .opcode = 0x7D, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0x61, .cycles = 6, .mode = IndirectX, },
+       { .opcode = 0x65, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0x69, .cycles = 2, .mode = Immediate, },
+       { .opcode = 0x6D, .cycles = 4, .mode = Absolute },
+       { .opcode = 0x71, .cycles = 5, .mode = IndirectY | PageBoundary },
+       { .opcode = 0x75, .cycles = 4, .mode = ZeroPageX, },
+       { .opcode = 0x79, .cycles = 4, .mode = AbsoluteY | PageBoundary },
+       { .opcode = 0x7D, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) { /* TODO */ }
 
 OPCODE(BRK,
@@ -435,40 +435,40 @@ void cpu::compare(uint8_t val) {
 }
 
 OPCODE(CMP,
-       { .opcode = 0xC1, .mode = IndirectX, .cycles = 6 },
-       { .opcode = 0xC5, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0xC9, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0xCD, .mode = Absolute, .cycles = 4 },
-       { .opcode = 0xD1, .mode = IndirectY, .cycles = 5, .page_boundary = true },
-       { .opcode = 0xD5, .mode = ZeroPageX, .cycles = 4 },
-       { .opcode = 0xD9, .mode = AbsoluteY, .cycles = 4, .page_boundary = true },
-       { .opcode = 0xDD, .mode = AbsoluteX, .cycles = 4, .page_boundary = true }
+       { .opcode = 0xC1, .cycles = 6, .mode = IndirectX },
+       { .opcode = 0xC5, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0xC9, .cycles = 2, .mode = Immediate },
+       { .opcode = 0xCD, .cycles = 4, .mode = Absolute },
+       { .opcode = 0xD1, .cycles = 5, .mode = IndirectY | PageBoundary },
+       { .opcode = 0xD5, .cycles = 4, .mode = ZeroPageX },
+       { .opcode = 0xD9, .cycles = 4, .mode = AbsoluteY | PageBoundary },
+       { .opcode = 0xDD, .cycles = 4, .mode = AbsoluteX | PageBoundary }
 ) {
     compare(A);
 }
 
 OPCODE(CPX,
-       { .opcode = 0xE0, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0xE4, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0xEC, .mode = Absolute, .cycles = 4 }
+       { .opcode = 0xE0, .cycles = 2, .mode = Immediate },
+       { .opcode = 0xE4, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0xEC, .cycles = 4, .mode = Absolute }
 ) {
     compare(X);
 }
 
 OPCODE(CPY,
-       { .opcode = 0xC0, .mode = Immediate, .cycles = 2 },
-       { .opcode = 0xC4, .mode = ZeroPage, .cycles = 3 },
-       { .opcode = 0xCC, .mode = Absolute, .cycles = 4 }
+       { .opcode = 0xC0, .cycles = 2, .mode = Immediate },
+       { .opcode = 0xC4, .cycles = 3, .mode = ZeroPage },
+       { .opcode = 0xCC, .cycles = 4, .mode = Absolute }
 ) {
     compare(Y);
 }
 
 OPCODE(LSR,
-       { .opcode = 0x46, .mode = ZeroPage, .cycles = 5, .rmw = true },
-       { .opcode = 0x4E, .mode = Absolute, .cycles = 6, .rmw = true },
-       { .opcode = 0x56, .mode = ZeroPageX, .cycles = 6, .rmw = true },
-       { .opcode = 0x5E, .mode = AbsoluteX, .cycles = 7, .rmw = true },
-       { .opcode = 0x4A, .mode = Direct, .cycles = 2, .rmw = true }
+       { .opcode = 0x46, .cycles = 5, .mode = ZeroPage | RMW },
+       { .opcode = 0x4E, .cycles = 6, .mode = Absolute | RMW },
+       { .opcode = 0x56, .cycles = 6, .mode = ZeroPageX | RMW },
+       { .opcode = 0x5E, .cycles = 7, .mode = AbsoluteX | RMW },
+       { .opcode = 0x4A, .cycles = 2, .mode = Direct | RMW }
 ) {
     auto D = operand();
     set_flag_if(CARRY_BIT, D & 0x1);
@@ -478,11 +478,11 @@ OPCODE(LSR,
 }
 
 OPCODE(ASL,
-       { .opcode = 0x06, .mode = ZeroPage, .cycles = 5, .rmw = true },
-       { .opcode = 0x0E, .mode = Absolute, .cycles = 6, .rmw = true },
-       { .opcode = 0x16, .mode = ZeroPageX, .cycles = 6, .rmw = true },
-       { .opcode = 0x1E, .mode = AbsoluteX, .cycles = 7, .rmw = true },
-       { .opcode = 0x0A, .mode = Direct, .cycles = 2, .rmw = true }
+       { .opcode = 0x06, .cycles = 5, .mode = ZeroPage | RMW },
+       { .opcode = 0x0E, .cycles = 6, .mode = Absolute | RMW },
+       { .opcode = 0x16, .cycles = 6, .mode = ZeroPageX | RMW },
+       { .opcode = 0x1E, .cycles = 7, .mode = AbsoluteX | RMW },
+       { .opcode = 0x0A, .cycles = 2, .mode = Direct | RMW }
 ) {
     auto D = operand();
     set_flag_if(CARRY_BIT, D & 0x80);
@@ -492,11 +492,11 @@ OPCODE(ASL,
 }
 
 OPCODE(ROR,
-       { .opcode = 0x66, .mode = ZeroPage, .cycles = 5, .rmw = true },
-       { .opcode = 0x6E, .mode = Absolute, .cycles = 6, .rmw = true },
-       { .opcode = 0x76, .mode = ZeroPageX, .cycles = 6, .rmw = true },
-       { .opcode = 0x7E, .mode = AbsoluteX, .cycles = 7, .rmw = true },
-       { .opcode = 0x6A, .mode = Direct, .cycles = 2, .rmw = true }
+       { .opcode = 0x66, .cycles = 5, .mode = ZeroPage | RMW },
+       { .opcode = 0x6E, .cycles = 6, .mode = Absolute | RMW },
+       { .opcode = 0x76, .cycles = 6, .mode = ZeroPageX | RMW },
+       { .opcode = 0x7E, .cycles = 7, .mode = AbsoluteX | RMW },
+       { .opcode = 0x6A, .cycles = 2, .mode = Direct | RMW }
 ) {
     auto D = operand();
     auto c = FLAG_CARRY;
@@ -508,11 +508,11 @@ OPCODE(ROR,
 }
 
 OPCODE(ROL,
-       { .opcode = 0x26, .mode = ZeroPage, .cycles = 5, .rmw = true },
-       { .opcode = 0x2E, .mode = Absolute, .cycles = 6, .rmw = true },
-       { .opcode = 0x36, .mode = ZeroPageX, .cycles = 6, .rmw = true },
-       { .opcode = 0x3E, .mode = AbsoluteX, .cycles = 7, .rmw = true },
-       { .opcode = 0x2A, .mode = Direct, .cycles = 2, .rmw = true }
+       { .opcode = 0x26, .cycles = 5, .mode = ZeroPage | RMW },
+       { .opcode = 0x2E, .cycles = 6, .mode = Absolute | RMW },
+       { .opcode = 0x36, .cycles = 6, .mode = ZeroPageX | RMW },
+       { .opcode = 0x3E, .cycles = 7, .mode = AbsoluteX | RMW },
+       { .opcode = 0x2A, .cycles = 2, .mode = Direct | RMW }
 ) {
     auto D = operand();
     auto c = FLAG_CARRY;
@@ -524,22 +524,22 @@ OPCODE(ROL,
 }
 
 OPCODE(INC,
-       { .opcode = 0xE6, .mode = ZeroPage, .cycles = 5, .rmw = true },
-       { .opcode = 0xEE, .mode = Absolute, .cycles = 6, .rmw = true },
-       { .opcode = 0xF6, .mode = ZeroPageX, .cycles = 6, .rmw = true },
-       { .opcode = 0xFE, .mode = AbsoluteX, .cycles = 7, .rmw = true }
+       { .opcode = 0xE6, .cycles = 5, .mode = ZeroPage | RMW },
+       { .opcode = 0xEE, .cycles = 6, .mode = Absolute | RMW },
+       { .opcode = 0xF6, .cycles = 6, .mode = ZeroPageX | RMW },
+       { .opcode = 0xFE, .cycles = 7, .mode = AbsoluteX | RMW }
 ) {
-    uint8_t D = operand() + 1;
+    auto D = operand() + 1;
     set_flags(D);
     operand(D);
 }
 
 OPCODE(DEC,
-       { .opcode = 0xC6, .mode = ZeroPage, .cycles = 5, .rmw = true },
-       { .opcode = 0xCE, .mode = Absolute, .cycles = 3, .rmw = true },
-       { .opcode = 0xD6, .mode = ZeroPageX, .cycles = 6, .rmw = true },
-       { .opcode = 0xDE, .mode = AbsoluteX, .cycles = 7, .rmw = true }) {
-    uint8_t D = operand() - 1;
+       { .opcode = 0xC6, .cycles = 5, .mode = ZeroPage | RMW },
+       { .opcode = 0xCE, .cycles = 3, .mode = Absolute | RMW },
+       { .opcode = 0xD6, .cycles = 6, .mode = ZeroPageX | RMW },
+       { .opcode = 0xDE, .cycles = 7, .mode = AbsoluteX | RMW }) {
+    auto D = operand() - 1;
     set_flags(D);
     operand(D);
 }
