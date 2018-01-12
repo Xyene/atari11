@@ -6,11 +6,8 @@ const char *cpu::opcode_names[256];
 
 opcode_def cpu::opcode_defs[256];
 
-mem_write_handler cpu::write_handlers[8192];
-
-mem_read_handler cpu::read_handlers[8192];
-
 cpu::cpu() {
+    reset();
     map_write_handler(0, 0x2000, [this](uint16_t addr, uint8_t val) {
         std::cout << addr << std::endl;
     });
@@ -24,7 +21,13 @@ void cpu::step() {
 }
 
 void cpu::reset() {
-
+   A = 0;
+   X = 0;
+   Y = 0;
+   SP = 0;
+   PC = 0;
+   P = 0;
+   cycle = 0;
 }
 
 uint8_t cpu::operand() const {
@@ -75,7 +78,7 @@ uint8_t cpu::pop8() { return 0; }
 uint16_t cpu::pop16() { return 0; }
 
 uint16_t cpu::next16() {
-    return read8(PC++) | (read8(PC++) << 8);
+    return next8() | (next8() << 8);
 }
 
 uint8_t cpu::next8() {
@@ -83,7 +86,7 @@ uint8_t cpu::next8() {
 }
 
 int8_t cpu::nexts8() {
-    return read8(PC++) | (read8(PC++) << 8);
+    return next8();
 }
 
 #define OPCODE(x, ...) static register_opcode_ opcode_##x##_def(#x, &cpu::op_##x, {__VA_ARGS__}); \

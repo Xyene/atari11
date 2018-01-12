@@ -52,23 +52,37 @@ struct opcode_def {
     inline bool has_extra_page_boundary_cycle() { return (mode & PageBoundary) > 0; }
 };
 
-class cpu {
+template <int ADDRESS_SIZE>
+class addressable {
+public:
+    mem_write_handler write_handlers[ADDRESS_SIZE];
+    mem_read_handler read_handlers[ADDRESS_SIZE];
+
+    void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
+        std::cout << sizeof write_handlers << std::endl;
+        for (int i = start; i < end; i++) write_handlers[i] = handler;
+    }
+
+    void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
+        for (int i = start; i < end; i++) read_handlers[i] = handler;
+    }
+};
+
+class cpu : addressable<8192> {
     friend class register_opcode_;
 
 private:
-    uint8_t A;
-    uint8_t X;
-    uint8_t Y;
-    uint8_t SP;
-    uint16_t PC;
-    uint8_t P;
-    uint32_t cycle;
+    uint8_t A = 0;
+    uint8_t X = 0;
+    uint8_t Y = 0;
+    uint8_t SP = 0;
+    uint16_t PC = 0;
+    uint8_t P = 0;
+    uint32_t cycle = 0;
 
     static opcode_handler opcode_handlers[256];
     static const char* opcode_names[256];
     static opcode_def opcode_defs[256];
-    static mem_write_handler write_handlers[8192];
-    static mem_read_handler read_handlers[8192];
 
 public:
     cpu();
@@ -76,14 +90,6 @@ public:
     void step();
 
     void reset();
-
-    void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
-        for (int i = start; i < end; i++) write_handlers[i] = handler;
-    }
-
-    void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
-        for (int i = start; i < end; i++) read_handlers[i] = handler;
-    }
 
 #define OPCODE(x) void op_##x()
 
