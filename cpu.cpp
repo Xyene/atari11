@@ -17,16 +17,20 @@ cpu::cpu() {
 }
 
 void cpu::step() {
-    (this->*opcode_handlers[0x20])();
+    current_instruction_ = next8();
+
+    cycle += opcode_defs[current_instruction_].cycles;
+
+    (this->*opcode_handlers[current_instruction_])();
 }
 
 void cpu::reset() {
    A = 0;
    X = 0;
    Y = 0;
-   SP = 0;
+   SP = 0xFD;
    PC = 0;
-   P = 0;
+   P = 0x24;
    cycle = 0;
 }
 

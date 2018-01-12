@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 
+#include "addressable.h"
+
 #define    CARRY_BIT            0x1
 #define    ZERO_BIT             0x2
 #define    INT_DISABLED_BIT     0x4
@@ -18,11 +20,6 @@
 class cpu;
 
 typedef void (cpu::* opcode_handler)();
-
-typedef std::function<void(uint16_t, uint8_t)> mem_write_handler;
-
-typedef std::function<uint8_t (uint16_t)> mem_read_handler;
-
 
 enum address_mode {
     None = 0x00,
@@ -52,33 +49,19 @@ struct opcode_def {
     inline bool has_extra_page_boundary_cycle() { return (mode & PageBoundary) > 0; }
 };
 
-template <int ADDRESS_SIZE>
-class addressable {
-public:
-    mem_write_handler write_handlers[ADDRESS_SIZE];
-    mem_read_handler read_handlers[ADDRESS_SIZE];
-
-    void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
-        std::cout << sizeof write_handlers << std::endl;
-        for (int i = start; i < end; i++) write_handlers[i] = handler;
-    }
-
-    void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
-        for (int i = start; i < end; i++) read_handlers[i] = handler;
-    }
-};
-
 class cpu : addressable<8192> {
     friend class register_opcode_;
 
 private:
-    uint8_t A = 0;
-    uint8_t X = 0;
-    uint8_t Y = 0;
-    uint8_t SP = 0;
-    uint16_t PC = 0;
-    uint8_t P = 0;
-    uint32_t cycle = 0;
+    uint8_t A;
+    uint8_t X;
+    uint8_t Y;
+    uint8_t SP;
+    uint16_t PC;
+    uint8_t P;
+    uint32_t cycle;
+
+    uint8_t current_instruction_;
 
     static opcode_handler opcode_handlers[256];
     static const char* opcode_names[256];
