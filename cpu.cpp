@@ -48,7 +48,7 @@ uint8_t cpu::read8(uint16_t addr) const {
 }
 
 uint16_t cpu::read16(uint16_t addr) const {
-    return read_handlers[addr](addr) | (read_handlers[addr + 1](addr + 1) << 8);
+    return read8(addr) | (read8(addr + 1) << 8);
 }
 
 void cpu::write8(uint16_t addr, uint8_t val) {
@@ -60,26 +60,33 @@ void cpu::write16(uint16_t addr, uint16_t val) {
     write_handlers[addr](addr + 1, (val >> 8) & 0xFF);
 }
 
-void cpu::push16(uint16_t val) {
-
+uint8_t cpu::next8() {
+    return read8(PC++);
 }
-
-void cpu::push8(uint8_t val) {
-
-}
-
-uint8_t cpu::pop8() { return 0; }
-
-uint16_t cpu::pop16() { return 0; }
 
 uint16_t cpu::next16() {
     return next8() | (next8() << 8);
 }
 
-uint8_t cpu::next8() {
-    return read8(PC++);
-}
-
 int8_t cpu::nexts8() {
     return next8();
+}
+
+void cpu::push8(uint8_t val) {
+    write8(0x100 + SP, val);
+    SP--;
+}
+
+uint8_t cpu::pop8() {
+    SP++;
+    return read8(0x100 + SP);
+}
+
+void cpu::push16(uint16_t val) {
+    push8(val >> 8);
+    push8(val & 0xFF);
+}
+
+uint16_t cpu::pop16() {
+    return pop8() | (pop8() << 8);
 }
