@@ -201,9 +201,15 @@ private:
 
     void write16(uint16_t addr, uint16_t val);
 
-    inline void set_flags(uint8_t val);
+    inline void set_flags(uint8_t val) {
+        set_flag_if(ZERO_BIT, !val);
+        set_flag_if(NEGATIVE_BIT, val < 0);
+    }
 
-    inline void set_flag_if(uint8_t mask, bool cond);
+    inline void set_flag_if(uint8_t mask, bool cond) {
+        if (cond) P |= mask; else P &= ~mask;
+        // P = (P & ~mask) | (-cond & mask);
+    }
 
     void push16(uint16_t val);
 

@@ -8,4 +8,4 @@ set(CMAKE_CXX_FLAGS "-std=c++14")
 SET(GCC_COVERAGE_COMPILE_FLAGS "-fwrapv")
 
 add_executable(2600
-        cpu.cpp cpu.h addressable.h)
+        cpu.h cpu_instructions.cpp cpu.cpp addressable.h main.cpp)
