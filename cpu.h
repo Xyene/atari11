@@ -21,7 +21,7 @@ class cpu;
 
 typedef void (cpu::* opcode_handler)();
 
-enum address_mode {
+enum opcode_mode {
     None = 0x00,
     Direct = 0x1,
     Immediate = 0x2,
@@ -42,7 +42,7 @@ struct opcode_def {
     uint8_t cycles;
     int mode;
 
-    inline address_mode get_address_mode() { return (address_mode)(mode & (RMW - 1)); };
+    inline opcode_mode address_mode() { return (opcode_mode)(mode & (RMW - 1)); };
 
     inline bool is_rmw() { return (mode & RMW) > 0; }
 
@@ -62,6 +62,9 @@ private:
     uint32_t cycle;
 
     uint8_t current_instruction_;
+    uint8_t rmw_value_;
+    uint16_t current_addr_;
+    bool fetched_current_addr_;
 
     static opcode_handler opcode_handlers[256];
     static const char* opcode_names[256];
@@ -189,7 +192,9 @@ public:
 #undef OPCODE
 
 private:
-    uint8_t operand() const;
+    uint16_t operand_address();
+
+    uint8_t operand();
 
     void operand(uint8_t val);
 
