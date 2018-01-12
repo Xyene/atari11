@@ -14,13 +14,18 @@ protected:
     mem_write_handler write_handlers[ADDRESS_SIZE];
     mem_read_handler read_handlers[ADDRESS_SIZE];
 
+    addressable() {
+        std::fill(write_handlers, write_handlers + ADDRESS_SIZE, nullptr);
+        std::fill(read_handlers, read_handlers + ADDRESS_SIZE, nullptr);
+    }
+
     void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
         std::cout << sizeof write_handlers << std::endl;
-        for (int i = start; i < end; i++) write_handlers[i] = handler;
+        std::fill(write_handlers + start, write_handlers + end, handler);
     }
 
     void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
-        for (int i = start; i < end; i++) read_handlers[i] = handler;
+        std::fill(read_handlers + start, read_handlers + end, handler);
     }
 };
 

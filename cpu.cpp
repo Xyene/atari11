@@ -19,9 +19,16 @@ cpu::cpu() {
 void cpu::step() {
     current_instruction_ = next8();
 
+    auto handler = opcode_handlers[current_instruction_];
+
+    if (handler == nullptr) {
+        printf("Invalid opcode %0X\n", current_instruction_);
+        return;
+    }
+
     cycle += opcode_defs[current_instruction_].cycles;
 
-    (this->*opcode_handlers[current_instruction_])();
+    (this->*handler)();
 }
 
 void cpu::reset() {
