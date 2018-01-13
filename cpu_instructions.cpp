@@ -292,6 +292,14 @@ OPCODE(EOR, { .opcode = 0x41, .cycles = 6, .mode = IndirectX },
     set_flags(A ^= operand());
 }
 
+void cpu::ADC_regular(int8_t val) {
+    if (FLAG_DECIMAL_MODE) throw std::logic_error("BCD not implemented");
+    int nA = (int8_t)A + val + (FLAG_CARRY ? 1 : 0);
+    set_flag_if(OVERFLOW_BIT, nA < -128 || nA > 127);
+    set_flag_if(CARRY_BIT, (A + val + (FLAG_CARRY ? 1 : 0)) > 0xFF);
+    A = nA;
+}
+
 OPCODE(SBC, { .opcode = 0xE1, .cycles = 6, .mode = IndirectX },
             { .opcode = 0xE5, .cycles = 3, .mode = ZeroPage },
             { .opcode = 0x69, .cycles = 2, .mode = Immediate },
@@ -302,7 +310,7 @@ OPCODE(SBC, { .opcode = 0xE1, .cycles = 6, .mode = IndirectX },
             { .opcode = 0xF5, .cycles = 4, .mode = ZeroPageX },
             { .opcode = 0xF9, .cycles = 4, .mode = AbsoluteY | PageBoundary },
             { .opcode = 0xFD, .cycles = 4, .mode = AbsoluteX | PageBoundary }
-) { /* TODO */ }
+) { ADC_regular(~operand()); }
 
 OPCODE(ADC, { .opcode = 0x61, .cycles = 6, .mode = IndirectX, },
             { .opcode = 0x65, .cycles = 3, .mode = ZeroPage },
@@ -312,7 +320,7 @@ OPCODE(ADC, { .opcode = 0x61, .cycles = 6, .mode = IndirectX, },
             { .opcode = 0x75, .cycles = 4, .mode = ZeroPageX, },
             { .opcode = 0x79, .cycles = 4, .mode = AbsoluteY | PageBoundary },
             { .opcode = 0x7D, .cycles = 4, .mode = AbsoluteX | PageBoundary }
-) { /* TODO */ }
+) { ADC_regular(operand()); }
 
 OPCODE(BRK,{ .opcode = 0x00, .cycles = 7 }) {
     next8();

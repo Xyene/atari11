@@ -264,6 +264,8 @@ private:
     inline void branch_if(bool cond);
 
     inline void compare(uint8_t val);
+
+    inline void ADC_regular(int8_t  val);
 };
 
 class register_opcode_ {
