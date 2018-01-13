@@ -58,11 +58,11 @@ OPCODE(TYA, { .opcode = 0x98, .cycles = 2 }) {
 }
 
 OPCODE(TAX, { .opcode = 0xA8, .cycles = 2, .mode = RMW }) {
-    set_flags(A = X);
+    set_flags(X = A);
 }
 
 OPCODE(TXA, { .opcode = 0x8A, .cycles = 2, .mode = RMW }) {
-    set_flags(X = A);
+    set_flags(A = X);
 }
 
 OPCODE(TSX, { .opcode = 0xBA, .cycles = 2 }) {
