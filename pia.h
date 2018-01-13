@@ -1,12 +1,12 @@
 #ifndef INC_2600_PIA_H
 #define INC_2600_PIA_H
 
-#include "addressable.h"
 #include "cpu.h"
 
 class pia {
+    uint8_t ram[128];
 public:
-    pia(cpu cpu);
+    explicit pia(cpu cpu);
 };
 
 
