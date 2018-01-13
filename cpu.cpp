@@ -3,12 +3,14 @@
 cpu::cpu() {
     std::fill(write_handlers, write_handlers + CPU_ADDRESS_SIZE, nullptr);
     std::fill(read_handlers, read_handlers + CPU_ADDRESS_SIZE, nullptr);
-    reset();
 }
 
 void cpu::step() {
     current_instruction_ = next8();
     fetched_current_addr_ = false;
+
+    printf("%04X %02X %s\t\t\tA:%02X X:%02X Y:%02X P:%02X SP:%02X\n",
+           PC - 1, current_instruction_, opcode_names[current_instruction_], A, X, Y, P, SP);
 
     auto handler = opcode_handlers[current_instruction_];
 
@@ -27,7 +29,8 @@ void cpu::reset() {
     X = 0;
     Y = 0;
     SP = 0xFF;
-    PC = 0;
+    PC = read16(0xFFFC);
+    printf("Reset PC to %04X\n", PC);
     P = 0x24;
     cycle = 0;
 }

@@ -86,11 +86,14 @@ public:
     }
 
     void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
-        std::fill(read_handlers + start, read_handlers + end + 1, handler);
+        printf("Mapping read handler from %04X ... %04X = %08X\n", start, end, handler);
+        //if (start == 0x1000) handler(0x1FFC);
+        for (int i = start; i <= end; i++) read_handlers[i] = handler;
     }
 
     uint8_t read8(uint16_t addr) const {
         addr &= CPU_ADDRESS_SIZE - 1;
+        printf("Reading %04X (handler=%s)\n", addr, read_handlers[addr]);
         return read_handlers[addr](addr);
     }
 
@@ -265,8 +268,8 @@ public:
             cpu::opcode_handlers[op.opcode] = handler;
             cpu::opcode_names[op.opcode] = name;
             cpu::opcode_defs[op.opcode] = op;
-            std::cout << (int) op.opcode << " (" << name << "[" << "mode=" << op.mode << ", rmw="
-                      << op.is_rmw() << ", page_cycle=" << op.has_extra_page_boundary_cycle() << "])" << std::endl;
+            //std::cout << (int) op.opcode << " (" << name << "[" << "mode=" << op.mode << ", rmw="
+            //          << op.is_rmw() << ", page_cycle=" << op.has_extra_page_boundary_cycle() << "])" << std::endl;
         }
     }
 };
