@@ -152,6 +152,8 @@ public:
 
     OPCODE(BIT);
 
+    OPCODE(JMP);
+
     OPCODE(BCS);
 
     OPCODE(BCC);

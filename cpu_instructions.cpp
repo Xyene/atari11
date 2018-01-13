@@ -114,6 +114,29 @@ void cpu::branch_if(bool cond) {
     }
 }
 
+OPCODE(JMP, { .opcode = 0x4C, .cycles = 3},
+            { .opcode = 0x6C, .cycles = 5}
+) {
+    if (current_instruction_ == 0x4C)
+        PC = next16();
+    else if (current_instruction_ == 0x6C) {
+        uint16_t off = next16();
+        // AN INDIRECT JUMP MUST NEVER USE A VECTOR BEGINNING ON THE LAST BYTE OF A PAGE
+        //
+        // If address $3000 contains $40, $30FF contains $80, and $3100 contains $50,
+        // the result of JMP ($30FF) will be a transfer of control to $4080 rather than
+        // $5080 as you intended i.e. the 6502 took the low byte of the address from
+        // $30FF and the high byte from $3000.
+        //
+        // http://www.6502.org/tutorials/6502opcodes.html
+        uint16_t hi = (off & 0xFF) == 0xFF ? off - 0xFF : off + 1;
+        uint16_t old_PC = PC;
+        PC = read16(off);
+
+        if ((old_PC & 0xFF00) != (PC & 0xFF00)) cycle += 2;
+    }
+}
+
 OPCODE(BCS, { .opcode = 0xB0, .cycles = 2 }) {
     branch_if(FLAG_CARRY);
 }
