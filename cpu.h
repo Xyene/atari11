@@ -87,14 +87,15 @@ public:
     }
 
     void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
-        printf("Mapping read handler from %04X ... %04X = %08X\n", start, end, handler);
+       // printf("Mapping read handler from %04X ... %04X = %08X\n", start, end, handler);
         //if (start == 0x1000) handler(0x1FFC);
         for (int i = start; i <= end; i++) read_handlers[i] = handler;
     }
 
     uint8_t read8(uint16_t addr) const {
+        auto orig = addr;
         addr &= CPU_ADDRESS_SIZE - 1;
-        //printf("Reading %04X\n", addr, read_handlers[addr]);
+        printf("Reading %04X = %02X\n", orig, read_handlers[addr](addr));
         return read_handlers[addr](addr);
     }
 
@@ -103,8 +104,9 @@ public:
     }
 
     void write8(uint16_t addr, uint8_t val) const {
+        auto orig = addr;
         addr &= CPU_ADDRESS_SIZE - 1;
-        //printf("Writing %04X = %02X\n", addr, val);
+        printf("Writing %04X = %02X\n", orig, val);
         if (write_handlers[addr] != nullptr)
             write_handlers[addr](addr, val);
     }

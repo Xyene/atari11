@@ -39,7 +39,7 @@ uint8_t cpu::operand() {
     if (opcode_defs[current_instruction_].address_mode() == Direct)
         rmw_value_ = A;
     else
-        rmw_value_ = read8(operand_address());
+        rmw_value_ = read8(current_addr_ = operand_address());
     return rmw_value_;
 }
 
@@ -48,11 +48,11 @@ void cpu::operand(uint8_t val) {
     if (def.address_mode() == Direct)
         A = val;
     else {
-        auto addr = operand_address();
+        current_addr_ = operand_address();
         // Fake another write for RMW opcodes
         if (def.is_rmw())
-            write8(addr, rmw_value_);
-        write8(addr, val);
+            write8(current_addr_, rmw_value_);
+        write8(current_addr_, val);
     }
 }
 
