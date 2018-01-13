@@ -8,6 +8,14 @@ pia::pia(cpu &cpu) {
     cpu.map_read_handler(0x0080, 0x00FF, [this](uint16_t addr) -> uint8_t {
         return ram[addr - 0x80];
     });
+    // RAM mirror, wtf
+    cpu.map_write_handler(0x0180, 0x01FF, [this](uint16_t addr, uint8_t val) {
+        ram[addr - 0x180] = val;
+    });
+    cpu.map_read_handler(0x0180, 0x01FF, [this](uint16_t addr) -> uint8_t {
+        return ram[addr - 0x180];
+    });
+
 
     // PIA ports
     cpu.map_write_handler(0x0280, 0x0297, [this](uint16_t addr, uint8_t val) {

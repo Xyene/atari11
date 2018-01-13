@@ -34,19 +34,19 @@ OPCODE(RTS, { .opcode = 0x60, .cycles = 6 }) {
 }
 
 OPCODE(INY, { .opcode = 0xC8, .cycles = 2 }) {
-    set_flags(Y++);
+    set_flags(++Y);
 }
 
 OPCODE(DEY, { .opcode = 0x88, .cycles = 2 }) {
-    set_flags(Y--);
+    set_flags(--Y);
 }
 
 OPCODE(INX, { .opcode = 0xE8, .cycles = 2 }) {
-    set_flags(X++);
+    set_flags(++X);
 }
 
 OPCODE(DEX, { .opcode = 0xCA, .cycles = 2, .mode = RMW }) {
-    set_flags(X--);
+    set_flags(--X);
 }
 
 OPCODE(TAY, { .opcode = 0xA8, .cycles = 2 }) {
@@ -107,7 +107,7 @@ OPCODE(BIT, { .opcode = 0x24, .cycles = 3, .mode = Absolute },
 }
 
 void cpu::branch_if(bool cond) {
-    auto new_pc = (uint8_t) (PC + nexts8() + 1);
+    uint16_t new_pc = PC + nexts8() + 1;
     if (cond) {
         PC = new_pc;
         cycle++;

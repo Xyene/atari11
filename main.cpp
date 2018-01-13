@@ -10,9 +10,8 @@ int main() {
     cartridge cartridge(cpu, "SPCINVAD.BIN");
     printf("Ready to begin\n");
     cpu.reset();
-    cpu.step();
-    cpu.step();
-    cpu.step();
-    cpu.step();
+
+    for(int i = 0; i < 1000; i++) cpu.step();
+
     return 0;
 }

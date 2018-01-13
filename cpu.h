@@ -19,6 +19,7 @@
 class cpu;
 
 typedef void (cpu::* opcode_handler)();
+
 typedef std::function<void(uint16_t, uint8_t)> mem_write_handler;
 typedef std::function<uint8_t(uint16_t)> mem_read_handler;
 
@@ -43,7 +44,7 @@ struct opcode_def {
     uint8_t cycles;
     int mode;
 
-    inline opcode_mode address_mode() { return (opcode_mode)(mode & (RMW - 1)); };
+    inline opcode_mode address_mode() { return (opcode_mode) (mode & (RMW - 1)); };
 
     inline bool is_rmw() { return (mode & RMW) > 0; }
 
@@ -71,7 +72,7 @@ private:
     bool fetched_current_addr_;
 
     static opcode_handler opcode_handlers[256];
-    static const char* opcode_names[256];
+    static const char *opcode_names[256];
     static opcode_def opcode_defs[256];
 
 public:
@@ -93,7 +94,7 @@ public:
 
     uint8_t read8(uint16_t addr) const {
         addr &= CPU_ADDRESS_SIZE - 1;
-        printf("Reading %04X\n", addr, read_handlers[addr]);
+        //printf("Reading %04X\n", addr, read_handlers[addr]);
         return read_handlers[addr](addr);
     }
 
@@ -103,7 +104,9 @@ public:
 
     void write8(uint16_t addr, uint8_t val) const {
         addr &= CPU_ADDRESS_SIZE - 1;
-        write_handlers[addr](addr, val);
+        //printf("Writing %04X = %02X\n", addr, val);
+        if (write_handlers[addr] != nullptr)
+            write_handlers[addr](addr, val);
     }
 
     void write16(uint16_t addr, uint16_t val) const {
@@ -234,7 +237,7 @@ private:
 
     inline void set_flags(uint8_t val) {
         set_flag_if(ZERO_BIT, !val);
-        set_flag_if(NEGATIVE_BIT, val < 0);
+        set_flag_if(NEGATIVE_BIT, val & 0x80);
     }
 
     inline void set_flag_if(uint8_t mask, bool cond) {

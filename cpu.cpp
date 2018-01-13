@@ -15,8 +15,8 @@ void cpu::step() {
     auto handler = opcode_handlers[current_instruction_];
 
     if (handler == nullptr) {
-        printf("Invalid opcode %0X\n", current_instruction_);
-        return;
+        printf("Invalid opcode %02X\n", current_instruction_);
+        throw std::logic_error("invalid opcode");
     }
 
     cycle += opcode_defs[current_instruction_].cycles;
@@ -31,7 +31,7 @@ void cpu::reset() {
     SP = 0xFF;
     PC = read16(0xFFFC);
     printf("Reset PC to %04X\n", PC);
-    P = 0x24;
+    P = 0x14;
     cycle = 0;
 }
 
