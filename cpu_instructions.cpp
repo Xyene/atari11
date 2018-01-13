@@ -62,7 +62,7 @@ OPCODE(TAX, { .opcode = 0xA8, .cycles = 2, .mode = RMW }) {
 }
 
 OPCODE(TXA, { .opcode = 0x8A, .cycles = 2, .mode = RMW }) {
-    set_flags(X = Y);
+    set_flags(X = A);
 }
 
 OPCODE(TSX, { .opcode = 0xBA, .cycles = 2 }) {
