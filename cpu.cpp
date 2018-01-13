@@ -1,13 +1,9 @@
 #include "cpu.h"
 
 cpu::cpu() {
+    std::fill(write_handlers, write_handlers + CPU_ADDRESS_SIZE, nullptr);
+    std::fill(read_handlers, read_handlers + CPU_ADDRESS_SIZE, nullptr);
     reset();
-    map_write_handler(0, 0x2000, [this](uint16_t addr, uint8_t val) {
-        std::cout << addr << std::endl;
-    });
-    map_read_handler(0, 0x2000, [this](uint16_t addr) -> uint8_t {
-        return 0;
-    });
 }
 
 void cpu::step() {

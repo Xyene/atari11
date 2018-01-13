@@ -7,8 +7,7 @@
 #include <iostream>
 #include <string>
 
-#include "addressable.h"
-
+#define    CPU_ADDRESS_SIZE     0x2000
 #define    CARRY_BIT            0x1
 #define    ZERO_BIT             0x2
 #define    INT_DISABLED_BIT     0x4
@@ -20,6 +19,8 @@
 class cpu;
 
 typedef void (cpu::* opcode_handler)();
+typedef std::function<void(uint16_t, uint8_t)> mem_write_handler;
+typedef std::function<uint8_t (uint16_t)> mem_read_handler;
 
 enum opcode_mode {
     None = 0x00,
@@ -49,10 +50,13 @@ struct opcode_def {
     inline bool has_extra_page_boundary_cycle() { return (mode & PageBoundary) > 0; }
 };
 
-class cpu : addressable<0x2000> {
+class cpu {
     friend class register_opcode_;
 
 private:
+    mem_write_handler write_handlers[CPU_ADDRESS_SIZE];
+    mem_read_handler read_handlers[CPU_ADDRESS_SIZE];
+
     uint8_t A;
     uint8_t X;
     uint8_t Y;
@@ -76,6 +80,33 @@ public:
     void step();
 
     void reset();
+
+    void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
+        std::fill(write_handlers + start, write_handlers + end + 1, handler);
+    }
+
+    void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
+        std::fill(read_handlers + start, read_handlers + end + 1, handler);
+    }
+
+    uint8_t read8(uint16_t addr) const {
+        addr &= CPU_ADDRESS_SIZE - 1;
+        return read_handlers[addr](addr);
+    }
+
+    uint16_t read16(uint16_t addr) const {
+        return read8(addr) | (read8(addr + 1) << 8);
+    }
+
+    void write8(uint16_t addr, uint8_t val) const {
+        addr &= CPU_ADDRESS_SIZE - 1;
+        write_handlers[addr](addr, val);
+    }
+
+    void write16(uint16_t addr, uint16_t val) const {
+        write8(addr, val);
+        write8(addr + 1, val >> 8);
+    }
 
 #define OPCODE(x) void op_##x()
 
@@ -197,14 +228,6 @@ private:
     uint8_t operand();
 
     void operand(uint8_t val);
-
-    uint8_t read8(uint16_t addr) const;
-
-    uint16_t read16(uint16_t addr) const;
-
-    void write8(uint16_t addr, uint8_t val);
-
-    void write16(uint16_t addr, uint16_t val);
 
     inline void set_flags(uint8_t val) {
         set_flag_if(ZERO_BIT, !val);
