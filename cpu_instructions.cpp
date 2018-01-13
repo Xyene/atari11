@@ -57,7 +57,7 @@ OPCODE(TYA, { .opcode = 0x98, .cycles = 2 }) {
     set_flags(A = Y);
 }
 
-OPCODE(TAX, { .opcode = 0xA8, .cycles = 2, .mode = RMW }) {
+OPCODE(TAX, { .opcode = 0xAA, .cycles = 2, .mode = RMW }) {
     set_flags(X = A);
 }
 
@@ -330,7 +330,11 @@ OPCODE(BRK,{ .opcode = 0x00, .cycles = 7 }) {
 }
 
 void cpu::compare(uint8_t val) {
+    int16_t  d = val - (int16_t)operand();
 
+    set_flag_if(NEGATIVE_BIT, (d & 0x80) > 0 && d != 0);
+    set_flag_if(CARRY_BIT, d >= 0);
+    set_flag_if(ZERO_BIT, d == 0);
 }
 
 OPCODE(CMP, { .opcode = 0xC1, .cycles = 6, .mode = IndirectX },
