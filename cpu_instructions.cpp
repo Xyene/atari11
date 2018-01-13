@@ -297,7 +297,7 @@ void cpu::ADC_regular(int8_t val) {
     int nA = (int8_t)A + val + (FLAG_CARRY ? 1 : 0);
     set_flag_if(OVERFLOW_BIT, nA < -128 || nA > 127);
     set_flag_if(CARRY_BIT, (A + val + (FLAG_CARRY ? 1 : 0)) > 0xFF);
-    A = nA;
+    set_flags(A = nA);
 }
 
 OPCODE(SBC, { .opcode = 0xE1, .cycles = 6, .mode = IndirectX },
@@ -330,7 +330,7 @@ OPCODE(BRK,{ .opcode = 0x00, .cycles = 7 }) {
 }
 
 void cpu::compare(uint8_t val) {
-    int16_t  d = val - (int16_t)operand();
+    int16_t d = val - (int16_t)operand();
 
     set_flag_if(NEGATIVE_BIT, (d & 0x80) > 0 && d != 0);
     set_flag_if(CARRY_BIT, d >= 0);
