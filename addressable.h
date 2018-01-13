@@ -21,15 +21,15 @@ public:
     }
 
     void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
-        std::fill(write_handlers + start, write_handlers + end, handler);
+        std::fill(write_handlers + start, write_handlers + end + 1, handler);
     }
 
     void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
-        std::fill(read_handlers + start, read_handlers + end, handler);
+        std::fill(read_handlers + start, read_handlers + end + 1, handler);
     }
 
     uint8_t read8(uint16_t addr) const {
-        addr &= ADDRESS_SIZE;
+        addr &= ADDRESS_SIZE - 1;
         return read_handlers[addr](addr);
     }
 
@@ -38,7 +38,7 @@ public:
     }
 
     void write8(uint16_t addr, uint8_t val) const {
-        addr &= ADDRESS_SIZE;
+        addr &= ADDRESS_SIZE - 1;
         write_handlers[addr](addr, val);
     }
 

@@ -49,7 +49,7 @@ struct opcode_def {
     inline bool has_extra_page_boundary_cycle() { return (mode & PageBoundary) > 0; }
 };
 
-class cpu : addressable<8192> {
+class cpu : addressable<0x2000> {
     friend class register_opcode_;
 
 private:
