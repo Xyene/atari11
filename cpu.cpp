@@ -30,7 +30,7 @@ void cpu::reset() {
     A = 0;
     X = 0;
     Y = 0;
-    SP = 0xFD;
+    SP = 0xFF;
     PC = 0;
     P = 0x24;
     cycle = 0;
@@ -55,23 +55,6 @@ void cpu::operand(uint8_t val) {
             write8(addr, rmw_value_);
         write8(addr, val);
     }
-}
-
-uint8_t cpu::read8(uint16_t addr) const {
-    return read_handlers[addr](addr);
-}
-
-uint16_t cpu::read16(uint16_t addr) const {
-    return read8(addr) | (read8(addr + 1) << 8);
-}
-
-void cpu::write8(uint16_t addr, uint8_t val) {
-    write_handlers[addr](addr, val);
-}
-
-void cpu::write16(uint16_t addr, uint16_t val) {
-    write_handlers[addr](addr, val & 0xFF);
-    write_handlers[addr](addr + 1, (val >> 8) & 0xFF);
 }
 
 uint8_t cpu::next8() {

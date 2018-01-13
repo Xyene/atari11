@@ -12,6 +12,9 @@ Makefile
 *.so
 *.dll
 *.cbp
+*.bin
+*.a26
+*.BIN
 
 *.sln
 *.cmake
