@@ -7,7 +7,8 @@
 class cartridge {
     uint8_t rom[0x1000];
 public:
-    cartridge(cpu cpu, const char* path);
+    cartridge(cpu &cpu, const char* path);
+    ~cartridge();
 };
 
 

@@ -7,7 +7,7 @@ int main() {
     cpu cpu;
     tia tia(cpu);
     pia pia(cpu);
-    cartridge cart(cpu, "SPCINVAD.BIN");
+    cartridge cartridge(cpu, "SPCINVAD.BIN");
     printf("Ready to begin\n");
     cpu.reset();
     cpu.step();

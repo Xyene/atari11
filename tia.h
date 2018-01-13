@@ -5,7 +5,7 @@
 
 class tia {
 public:
-    explicit tia(cpu cpu);
+    explicit tia(cpu &cpu);
 };
 
 

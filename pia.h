@@ -6,7 +6,7 @@
 class pia {
     uint8_t ram[128];
 public:
-    explicit pia(cpu cpu);
+    explicit pia(cpu &cpu);
 };
 
 

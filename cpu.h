@@ -20,7 +20,7 @@ class cpu;
 
 typedef void (cpu::* opcode_handler)();
 typedef std::function<void(uint16_t, uint8_t)> mem_write_handler;
-typedef std::function<uint8_t (uint16_t)> mem_read_handler;
+typedef std::function<uint8_t(uint16_t)> mem_read_handler;
 
 enum opcode_mode {
     None = 0x00,
@@ -93,7 +93,7 @@ public:
 
     uint8_t read8(uint16_t addr) const {
         addr &= CPU_ADDRESS_SIZE - 1;
-        printf("Reading %04X (handler=%s)\n", addr, read_handlers[addr]);
+        printf("Reading %04X\n", addr, read_handlers[addr]);
         return read_handlers[addr](addr);
     }
 
