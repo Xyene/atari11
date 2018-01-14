@@ -1,27 +1,23 @@
 #include "pia.h"
 
 pia::pia(cpu &cpu) {
-    // RAM
-    cpu.map_write_handler(0x0080, 0x00FF, [this](uint16_t addr, uint8_t val) {
-        ram[addr - 0x80] = val;
-    });
-    cpu.map_read_handler(0x0080, 0x00FF, [this](uint16_t addr) -> uint8_t {
-        return ram[addr - 0x80];
-    });
-    // RAM mirror, wtf
-    cpu.map_write_handler(0x0180, 0x01FF, [this](uint16_t addr, uint8_t val) {
-        ram[addr - 0x180] = val;
-    });
-    cpu.map_read_handler(0x0180, 0x01FF, [this](uint16_t addr) -> uint8_t {
-        return ram[addr - 0x180];
-    });
-
+    // PIA RAM
+    cpu.map_memory_handler(PIA_MASK,
+                           PIA_RAM_SELECT,
+                           [this](uint16_t addr) -> uint8_t {
+                               return ram[addr & 0x7F];
+                           },
+                           [this](uint16_t addr, uint8_t val) {
+                               ram[addr & 0x7F] = val;
+                           });
 
     // PIA ports
-    cpu.map_write_handler(0x0280, 0x0297, [this](uint16_t addr, uint8_t val) {
+    cpu.map_memory_handler(PIA_MASK,
+                           PIA_PORT_SELECT,
+                           [this](uint16_t addr) -> uint8_t {
 
-    });
-    cpu.map_read_handler(0x0280, 0x0297, [this](uint16_t addr) -> uint8_t {
+                           },
+                           [this](uint16_t addr, uint8_t val) {
 
-    });
+                           });
 }

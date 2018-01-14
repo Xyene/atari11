@@ -3,6 +3,10 @@
 
 #include "cpu.h"
 
+const uint16_t PIA_MASK = A12 | A9 | A7;
+const uint16_t PIA_RAM_SELECT = A7;
+const uint16_t PIA_PORT_SELECT = A9 | A7;
+
 class pia {
     uint8_t ram[128];
 public:

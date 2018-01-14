@@ -3,6 +3,9 @@
 
 #include "cpu.h"
 
+const uint16_t TIA_MASK = A12 | A7;
+const uint16_t TIA_SELECT = 0;
+
 class tia {
 public:
     explicit tia(cpu &cpu);

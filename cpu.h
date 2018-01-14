@@ -16,6 +16,10 @@
 #define    OVERFLOW_BIT         0x40
 #define    NEGATIVE_BIT         0x80
 
+#define    A7                   (uint16_t)(1 << 7)
+#define    A9                   (uint16_t)(1 << 9)
+#define    A12                  (uint16_t)(1 << 12)
+
 class cpu;
 
 typedef void (cpu::* opcode_handler)();
@@ -67,7 +71,7 @@ private:
     uint32_t cycle;
 
     uint8_t current_instruction_;
-    uint8_t rmw_value_;
+    uint8_t orig_rmw_value_;
     uint16_t current_addr_;
     bool fetched_current_addr_;
 
@@ -82,14 +86,15 @@ public:
 
     void reset();
 
-    void map_write_handler(uint16_t start, uint16_t end, const mem_write_handler &handler) {
-        std::fill(write_handlers + start, write_handlers + end + 1, handler);
-    }
-
-    void map_read_handler(uint16_t start, uint16_t end, const mem_read_handler &handler) {
-       // printf("Mapping read handler from %04X ... %04X = %08X\n", start, end, handler);
-        //if (start == 0x1000) handler(0x1FFC);
-        for (int i = start; i <= end; i++) read_handlers[i] = handler;
+    void map_memory_handler(uint16_t mask, uint16_t select,
+                          const mem_read_handler &read_handler,
+                          const mem_write_handler &write_handler
+    ) {
+        for (int i = 0; i < CPU_ADDRESS_SIZE; i++)
+            if ((i & mask) == select) {
+                read_handlers[i] = read_handler;
+                write_handlers[i] = write_handler;
+            }
     }
 
     uint8_t read8(uint16_t addr) const {
