@@ -70,6 +70,8 @@ private:
     uint8_t P;
     uint32_t cycle;
 
+    uint32_t cycle_stall_ = 0;
+
     uint8_t current_instruction_;
     uint8_t orig_rmw_value_;
     uint16_t current_addr_;
@@ -272,7 +274,7 @@ private:
 
     inline void compare(uint8_t val);
 
-    inline void ADC_regular(int8_t  val);
+    inline void ADC_regular(uint8_t  val);
 };
 
 class register_opcode_ {

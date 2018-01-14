@@ -6,6 +6,10 @@ cpu::cpu() {
 }
 
 void cpu::step() {
+    if (cycle_stall_) {
+        cycle_stall_--;
+        return;
+    }
     current_instruction_ = next8();
     fetched_current_addr_ = false;
 
@@ -19,7 +23,9 @@ void cpu::step() {
         throw std::logic_error("invalid opcode");
     }
 
-    cycle += opcode_defs[current_instruction_].cycles;
+    auto insn_cycles = opcode_defs[current_instruction_].cycles;
+    cycle_stall_ += insn_cycles - 1;
+    cycle += insn_cycles;
 
     (this->*handler)();
 }

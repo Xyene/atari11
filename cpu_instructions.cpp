@@ -292,12 +292,44 @@ OPCODE(EOR, { .opcode = 0x41, .cycles = 6, .mode = IndirectX },
     set_flags(A ^= operand());
 }
 
-void cpu::ADC_regular(int8_t val) {
-    if (FLAG_DECIMAL_MODE) throw std::logic_error("BCD not implemented");
-    int nA = (int8_t)A + val + (FLAG_CARRY ? 1 : 0);
-    set_flag_if(OVERFLOW_BIT, nA < -128 || nA > 127);
-    set_flag_if(CARRY_BIT, (A + val + (FLAG_CARRY ? 1 : 0)) > 0xFF);
-    set_flags(A = nA);
+
+
+void cpu::ADC_regular(uint8_t val) {
+    bool carry = !!FLAG_CARRY;
+
+    if (FLAG_DECIMAL_MODE) {
+        throw std::logic_error("BCD not implemented");
+#define LO(x) (x & 0x0F)
+#define HI(x) (x & 0xF0) >> 4
+        // lo and hi are both 4-bit values (max value 15)
+        uint16_t lo = LO(A) + LO(val) + carry;
+        uint16_t hi = HI(A) + HI(val);
+
+        if (lo > 9) {
+            hi++; // increment hi by 1
+            lo += 6; // overflow low nibble, e.g. 10 -> 0
+        }
+        // Negative bit set before we overflow the hi nibble
+        set_flag_if(NEGATIVE_BIT, !!(hi & 0x8));
+
+        int16_t signed_hi = hi;
+        set_flag_if(OVERFLOW_BIT, signed_hi < -8 || signed_hi > 7);
+
+        if (hi > 9) {
+            hi += 6; // overflow high nibble
+        }
+
+        set_flag_if(CARRY_BIT, !!(hi & 0xFF));
+        A = ((hi & 0xF) << 4) | (lo & 0xF);
+        set_flag_if(ZERO_BIT, !A);
+#undef LO
+#undef HI
+    } else {
+        uint16_t sum = A + val + carry;
+        set_flag_if(OVERFLOW_BIT, ~(A ^ val) & (A ^ sum) & 0x80);
+        set_flag_if(CARRY_BIT, sum & 0xFF00);
+        set_flags(A = sum);
+    }
 }
 
 OPCODE(SBC, { .opcode = 0xE1, .cycles = 6, .mode = IndirectX },
