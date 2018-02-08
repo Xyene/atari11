@@ -82,14 +82,6 @@ OPCODE(PLP, { .opcode = 0x28, .cycles = 4 }) {
 }
 
 OPCODE(PLA, { .opcode = 0x68, .cycles = 4 }) {
-    switch (A) {
-        case 0 ... 5:
-            A = pop8();
-            break;
-        case 6 ... 7:
-            A = pop16();
-            break;
-    }
     set_flags(A = pop8());
 }
 
